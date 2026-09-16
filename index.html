@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="km">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>KrobKrongSite</title>
+    <style>
+        :root {
+            --primary-color: #0056b3;
+            --danger-color: #d9534f;
+            --success-color: #28a745;
+            --bg-color: #f4f6f9;
+            --card-bg: #ffffff;
+            --text-color: #333;
+        }
+        body {
+            font-family: 'Khmer OS Battambang', sans-serif;
+            background-color: var(--bg-color);
+            margin: 0;
+            padding: 15px;
+            color: var(--text-color);
+        }
+        .main-header {
+            background-color: var(--primary-color);
+            color: white;
+            text-align: center;
+            padding: 15px;
+            border-radius: 12px;
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        }
+        .project-card {
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 12px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-left: 5px solid var(--primary-color);
+            cursor: pointer;
+        }
+        .project-title {
+            font-size: 15px;
+            font-weight: bold;
+            color: #222;
+        }
+        .project-sub {
+            font-size: 12px;
+            color: #666;
+            margin-top: 4px;
+        }
+        .add-new-btn {
+            background-color: var(--success-color);
+            color: white;
+            text-align: center;
+            padding: 14px;
+            border-radius: 10px;
+            font-size: 15px;
+            font-weight: bold;
+            margin-top: 20px;
+            cursor: pointer;
+            box-shadow: 0 4px 6px rgba(40,167,69,0.2);
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.5);
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        .modal-content {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            width: 100%;
+            max-width: 400px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+        label {
+            font-size: 13px;
+            font-weight: bold;
+            display: block;
+            margin-bottom: 5px;
+            color: #444;
+        }
+        input, select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 14px;
+            box-sizing: border-box;
+            margin-bottom: 15px;
+            font-family: 'Khmer OS Battambang', sans-serif;
+        }
+        .btn-row { display: flex; gap: 10px; }
+        .btn-save { background: var(--primary-color); color: white; border: none; padding: 10px; border-radius: 8px; width: 100%; font-weight: bold; cursor: pointer; }
+        .btn-cancel { background: #6c757d; color: white; border: none; padding: 10px; border-radius: 8px; width: 100%; font-weight: bold; cursor: pointer; }
+        .hidden { display: none; }
+        .back-btn { background: #6c757d; color: white; border: none; padding: 8px 15px; border-radius: 8px; font-size: 14px; margin-bottom: 15px; cursor: pointer; }
+        .worker-item { background: #f9f9f9; padding: 10px; border-radius: 8px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; border: 1px solid #eee; font-size: 14px; }
+        .del-worker { background: var(--danger-color); color: white; border: none; padding: 5px 10px; font-size: 12px; border-radius: 5px; cursor: pointer; }
+        .delete-proj-btn { background: var(--danger-color); color: white; border: none; padding: 10px; width: 100%; border-radius: 8px; font-weight: bold; margin-top: 20px; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <div id="homeView">
+        <div class="main-header">🏗️ គ្រប់គ្រងការដ្ឋាន</div>
+        <div id="projectListContainer"></div>
+        <div class="add-new-btn" onclick="openModal()">+ បង្កើតគម្រោងថ្មី</div>
+    </div>
+
+    <div id="detailView" class="hidden">
+        <button class="back-btn" onclick="goBack()">⬅️ ត្រឡប់ក្រោយ</button>
+        <div style="background: white; padding: 15px; border-radius: 12px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); margin-bottom: 15px;">
+            <h2 id="detName" style="color: var(--primary-color); margin-top: 0; font-size: 18px;">ឈ្មោះគម្រោង</h2>
+            <p style="font-size: 14px; color: #555; margin-bottom: 0;">👤 មេគម្រោង: <b id="detManager"></b></p>
+        </div>
+        <div style="background: white; padding: 15px; border-radius: 12px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); margin-bottom: 15px;">
+            <h3 style="font-size: 15px; margin-top: 0;">👷‍♂️ បន្ថែមជាងចូលក្រុម</h3>
+            <form id="addWorkerForm">
+                <label>ជំនាញជាង:</label>
+                <select id="wTrade" style="width:100%; padding:10px; border:1px solid #ddd; border-radius:8px; margin-bottom:12px; font-family:'Khmer OS Battambang';">
+                    <option value="ជាងឆ្អឹង">ជាងឆ្អឹង</option>
+                    <option value="ជាងការ៉ូ">ជាងការ៉ូ</option>
+                    <option value="ជាងភ្លើង/ទឹក">ជាងភ្លើង / ទឹក</option>
+                    <option value="ជាងលាបថ្នាំ">ជាងលាបថ្នាំ</option>
+                </select>
+                <label>ឈ្មោះមេជាង / សមាជិក:</label>
+                <input type="text" id="wName" placeholder="ឧ. ជាង សុខ" required style="margin-bottom: 12px;">
+                <button type="submit" class="btn-save" style="background: var(--success-color);">បញ្ចូលជាង</button>
+            </form>
+        </div>
+        <div style="background: white; padding: 15px; border-radius: 12px; box-shadow: 0 2px 5px rgba(0,0,0,0.05);">
+            <h3 style="font-size: 15px; margin-top: 0;">📋 បញ្ជីជាងក្នុងគម្រោងនេះ</h3>
+            <div id="workersList"></div>
+        </div>
+        <button class="delete-proj-btn" onclick="deleteCurrentProject()">លុបគម្រោងនេះចោល</button>
+    </div>
+
+    <div id="projectModal" class="modal">
+        <div class="modal-content">
+            <h3 style="margin-top: 0; color: var(--primary-color);">បង្កើតគម្រោងថ្មី</h3>
+            <form id="createForm">
+                <label>ឈ្មោះគម្រោង:</label>
+                <input type="text" id="modalProjName" placeholder="បញ្ចូលឈ្មោះគម្រោង..." required>
+                <label>ឈ្មោះមេគម្រោង:</label>
+                <input type="text" id="modalManagerName" placeholder="បញ្ចូលឈ្មោះមេគម្រោង..." required>
+                <div class="btn-row">
+                    <button type="button" class="btn-cancel" onclick="closeModal()">បោះបង់</button>
+                    <button type="submit" class="btn-save">រក្សាទុក</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        let currentActiveId = null;
+        function getProjects() {
+            let data = localStorage.getItem('krobkrong_projects');
+            if (!data) {
+                let defaultData = [{ id: 1, name: "វីឡា classic កំពង់សោម", manager: "មេ ឆៃ សុវណ្ណា", workers: [{trade: "ជាងឆ្អឹង", name: "មេជាង វ៉ាន់"}] }];
+                localStorage.setItem('krobkrong_projects', JSON.stringify(defaultData));
+                return defaultData;
+            }
+            return JSON.parse(data);
+        }
+        function saveProjects(projects) { localStorage.setItem('krobkrong_projects', JSON.stringify(projects)); }
+        function renderHome() {
+            let projects = getProjects();
+            let container = document.getElementById('projectListContainer');
+            if(projects.length === 0) { container.innerHTML = '<p style="text-align:center; color:#888;">មិនទាន់មានគម្រោងនៅឡើយទេ។</p>'; return; }
+            let html = '';
+            projects.forEach(p => {
+                html += `<div class="project-card" onclick="openDetail(${p.id})"><div><div class="project-title">${p.name}</div><div class="project-sub">👤 មេ: ${p.manager} | 👷‍♂️ ជាង: ${p.workers.length} នាក់</div></div><div style="font-size: 16px; color: var(--primary-color);">➔</div></div>`;
+            });
+            container.innerHTML = html;
+        }
+        function openModal() { document.getElementById('projectModal').style.display = 'flex'; }
+        function closeModal() { document.getElementById('projectModal').style.display = 'none'; }
+        document.getElementById('createForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            let name = document.getElementById('modalProjName').value;
+            let manager = document.getElementById('modalManagerName').value;
+            let projects = getProjects();
+            projects.push({ id: Date.now(), name, manager, workers: [] });
+            saveProjects(projects);
+            document.getElementById('createForm').reset();
+            closeModal();
+            renderHome();
+        });
+        function openDetail(id) { currentActiveId = id; document.getElementById('homeView').classList.add('hidden'); document.getElementById('detailView').classList.remove('hidden'); renderDetailData(); }
+        function goBack() { currentActiveId = null; document.getElementById('detailView').classList.add('hidden'); document.getElementById('homeView').classList.remove('hidden'); renderHome(); }
+        function renderDetailData() {
+            let projects = getProjects();
+            let p = projects.find(item => item.id === currentActiveId);
+            if(!p) return;
+            document.getElementById('detName').innerText = p.name;
+            document.getElementById('detManager').innerText = p.manager;
+            let wContainer = document.getElementById('workersList');
+            if(p.workers.length === 0) { wContainer.innerHTML = '<p style="text-align:center; color:#888; font-size:13px;">មិនទាន់មានជាងក្នុងគម្រោងនេះទេ។</p>'; return; }
+            let html = '';
+            p.workers.forEach((w, index) => {
+                html += `<div class="worker-item"><span><b>[${w.trade}]</b> ${w.name}</span><button class="del-worker" onclick="removeWorker(${index})">លុបចេញ</button></div>`;
+            });
+            wContainer.innerHTML = html;
+        }
+        document.getElementById('addWorkerForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            let trade = document.getElementById('wTrade').value;
+            let name = document.getElementById('wName').value.trim();
+            let projects = getProjects();
+            projects = projects.map(p => { if(p.id === currentActiveId) { p.workers.push({ trade, name }); } return p; });
+            saveProjects(projects);
+            document.getElementById('wName').value = '';
+            renderDetailData();
+        });
+        function removeWorker(index) {
+            if(confirm('តើអ្នកចង់លុបជាងនេះចេញពីក្រុមមែនទេ?')) {
+                let projects = getProjects();
+                projects = projects.map(p => { if(p.id === currentActiveId) { p.workers.splice(index, 1); } return p; });
+                saveProjects(projects);
+                renderDetailData();
+            }
+        }
+        function deleteCurrentProject() {
+            if(confirm('តើអ្នកពិតជាចង់លុបគម្រោងនេះទាំងមូលមែនទេ?')) {
+                let projects = getProjects();
+                projects = projects.filter(p => p.id !== currentActiveId);
+                saveProjects(projects);
+                goBack();
+            }
+        }
+        renderHome();
+    </script>
+</body>
+</html>
